@@ -9,6 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -21,6 +23,11 @@ import java.util.List;
 public class StudentServiceImpl implements StudentService {
     @Autowired
     StudentRepository studentRepository;
+    @Autowired
+    private JavaMailSender javaMailSender;
+    @Autowired
+    private  OTPservice otPservice;
+
 
 
     @Override
@@ -30,8 +37,10 @@ public class StudentServiceImpl implements StudentService {
             ids.add(saveStudentRequest.getStudentId());
             Student student = studentRepository.findById(saveStudentRequest.getStudentId()).get();
             student.setStudentName(saveStudentRequest.getStudentName());
+
             if (studentRepository.existsByStudentEmailAndStudentIdNotIn(saveStudentRequest.getStudentEmail(), ids)) {
                 throw new Exception("Email already exits");
+
             } else {
                 student.setStudentEmail(saveStudentRequest.getStudentEmail());
             }
@@ -43,6 +52,8 @@ public class StudentServiceImpl implements StudentService {
             student.setStudentIsDeleted(false);
             student.setStudentIsavtive(true);
             studentRepository.save(student);
+            int otp = otPservice.generateOTP(saveStudentRequest.getStudentEmail());
+            this.sendEmail("gitanjalichittar.oms@gmail.com","Application","Hi Pooja"+otp);
             return "update Sucessfully";
         } else {
             Student student = new Student();
@@ -60,8 +71,23 @@ public class StudentServiceImpl implements StudentService {
             student.setStudentIsDeleted(false);
             student.setStudentIsavtive(true);
             studentRepository.save(student);
+            int otp = otPservice.generateOTP(saveStudentRequest.getStudentEmail());
+            this.sendEmail("gitanjalichittar.oms@gmail.com","Application","Hi pooja"+otp);
             return "save sucessfully";
+
         }
+    }
+
+
+
+
+    public void sendEmail(String toEmail, String subject , String body){
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(toEmail);
+        mailMessage.setSubject(subject);
+        mailMessage.setText(body);
+        javaMailSender.send(mailMessage);
+
     }
 
     @Override

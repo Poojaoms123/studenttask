@@ -2,6 +2,7 @@ package com.example.demo11.Controller;
 
 import com.example.demo11.Model.Response.EntityResponse;
 import com.example.demo11.Model.SaveRequest.SaveStudentRequest;
+import com.example.demo11.Service.ServiceImpl.OTPservice;
 import com.example.demo11.Service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -17,13 +18,18 @@ import java.util.List;
 public class StudentController {
     @Autowired
     StudentService studentService;
+
     @Autowired
     @GetMapping("/firstapi")
     public String firstapi(){return "Working";}
 
     @PostMapping("/saveOrUpdateStudent")
     public ResponseEntity<?> saveOrUpdateStudent(@RequestBody SaveStudentRequest saveStudentRequest) throws Exception {
-        return new ResponseEntity<>(studentService.saveOrUpdateStudent(saveStudentRequest), HttpStatus.OK);
+        try {
+            return new ResponseEntity<>(new EntityResponse(studentService.saveOrUpdateStudent(saveStudentRequest),0), HttpStatus.OK);
+        }catch (Exception e){
+            return new ResponseEntity<>(new EntityResponse(e.getMessage(),-1),HttpStatus.OK);
+        }
     }
     @GetMapping("/getById")
     public ResponseEntity<?> getById(@RequestParam Long studentId) {
